@@ -1,13 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { DataComponent, useDataApp, useDashboardTabs } from "./standalone-runtime.jsx";
+import { RaceExplorer } from "./RaceExplorer.jsx";
+import { SurgeGallery } from "./SurgeGallery.jsx";
 import "./dashboard.css";
 
 const THRESHOLD_W = 220;
 const ROW_SECONDS = 3600;
 const DASHBOARD_TABS = [
   { id: "dashboard", label: "Race Tape", focusFields: ["lapId"] },
-  { id: "effort-gallery", label: "Effort Gallery", focusFields: ["lapId"] },
   { id: "lap-log", label: "Lap Log", focusFields: ["lapId"] },
   { id: "route-map", label: "Route Map", focusFields: ["lapId"] },
 ];
@@ -613,6 +614,9 @@ export function DashboardContent() {
   const initial = viewFocus?.lapId && segments.some((segment) => segment.lap_id === viewFocus.lapId)
     ? viewFocus.lapId : (segments.find((segment) => segment.lap_type === "Effort")?.lap_id ?? segments[0]?.lap_id);
   const [selectedLapId, setSelectedLapId] = useState(initial);
+  const [expandedEffortId, setExpandedEffortId] = useState(
+    initial?.startsWith("E") ? initial : (segments.find((segment) => segment.lap_type === "Effort")?.lap_id ?? null),
+  );
   useEffect(() => {
     const focused = segments.find((segment) => segment.lap_id === viewFocus?.lapId)?.lap_id;
     if (focused && focused !== selectedLapId) {
@@ -628,6 +632,23 @@ export function DashboardContent() {
     setSelectedLapId(lapId);
     setDashboardFocus?.({ ...(viewFocus ?? {}), lapId });
   }, [segments, setDashboardFocus, viewFocus]);
+  const openSurge = useCallback((lapId) => {
+    if (!lapId?.startsWith("E")) return;
+    selectLap(lapId);
+    setExpandedEffortId(lapId);
+    window.requestAnimationFrame(() => {
+      const behavior = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ? "auto" : "smooth";
+      document.getElementById(`surge-${lapId}`)?.scrollIntoView({ behavior, block: "start" });
+    });
+  }, [selectLap]);
+  const showInExplorer = useCallback((lapId) => {
+    if (lapId) selectLap(lapId);
+    window.requestAnimationFrame(() => {
+      const behavior = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ? "auto" : "smooth";
+      document.getElementById("race-explorer")?.scrollIntoView({ behavior, block: "start" });
+      document.querySelector(".navigator-svg")?.focus({ preventScroll: true });
+    });
+  }, [selectLap]);
   useEffect(() => {
     const focusedIsValid = segments.some((segment) => segment.lap_id === viewFocus?.lapId);
     if (selectedLapId && !focusedIsValid) {
@@ -648,8 +669,6 @@ export function DashboardContent() {
     selectLap(segments[nextIndex].lap_id);
   }, [segments, selectedLapId, selectLap]);
   const selectedLap = segments.find((segment) => segment.lap_id === selectedLapId);
-  const raceTapeSources = useMemo(() => ({ race_overview: overview, lap_segments: segments, ride_series: ride }), [overview, segments, ride]);
-  const gallerySources = useMemo(() => ({ lap_segments: segments, ride_series: ride }), [segments, ride]);
   const routeSources = useMemo(() => ({ route_points: route, lap_segments: segments }), [route, segments]);
   return <article className="race-tape-page" tabIndex="0" onKeyDown={handlePageKeyDown}
     aria-label="Race Tape dashboard. Use left and right arrow keys to step through synthetic laps.">
@@ -657,30 +676,14 @@ export function DashboardContent() {
       {selectedLap ? `Selected ${selectedLap.lap_id}, ${selectedLap.lap_type}, ${formatDuration(selectedLap.duration_s, true)}, average ${formatNumber(selectedLap.avg_power_w)} watts.` : "No lap selected."}
     </div>
     {activeTabId === "dashboard" && <>
-      <SummaryStrip overview={overview} />
-      {visible("race-tape") && <DataComponent id="race-tape" queryId="lap_segments"
-      queryIds={["lap_segments", "race_overview", "ride_series"]}
-      sourceRows={segments} sourceRowsByQuery={raceTapeSources} displayRows={segments}
-      title="Race Tape" kind="custom" variant="card"
-      description="Synthetic laps use raw recorded power: strictly above 220 W for at least 16 consecutive recorded seconds. Auto-pauses are markers, not laps.">
-      <RaceTape overview={overview} segments={segments} ride={ride} selectedLapId={selectedLapId} onSelect={selectLap} />
-      </DataComponent>}
-    </>}
-    {activeTabId === "effort-gallery" && <>
-      {visible("effort-detail") && <DataComponent id="effort-detail"
-        queryId="ride_series" queryIds={["ride_series", "lap_segments"]}
-        sourceRows={ride} sourceRowsByQuery={gallerySources} displayRows={ride}
-        title="Selected Effort Detail" kind="custom" variant="card"
-        description="One-second power and heart-rate data, with 60 seconds of race context before and after the selected effort.">
-        <EffortDetailPanel segments={segments} ride={ride} selectedLapId={selectedLapId} onSelect={selectLap} />
-      </DataComponent>}
-      {visible("effort-gallery") && <DataComponent id="effort-gallery"
-        queryId="lap_segments" queryIds={["lap_segments", "ride_series"]}
-        sourceRows={segments} sourceRowsByQuery={gallerySources} displayRows={segments.filter((segment) => segment.lap_type === "Effort")}
-        title="Effort Gallery" kind="custom" variant="card"
-        description="All 68 strict efforts in chronological order, compared on one power scale. Select an effort to synchronize every view.">
-        <EffortGallery segments={segments} ride={ride} selectedLapId={selectedLapId} onSelect={selectLap} />
-      </DataComponent>}
+      {visible("race-tape") && <section id="race-explorer" className="race-explorer-shell" aria-label="Interactive continuous race explorer">
+        <RaceExplorer overview={overview} segments={segments} ride={ride} route={route}
+          selectedLapId={selectedLapId} onSelect={selectLap} onDownload={() => downloadLapCsv(segments)}
+          onOpenSurge={openSurge} />
+      </section>}
+      {visible("effort-gallery") && <SurgeGallery segments={segments} ride={ride} route={route}
+        selectedLapId={selectedLapId} expandedEffortId={expandedEffortId}
+        onSelect={selectLap} onExpand={setExpandedEffortId} onShowExplorer={showInExplorer} />}
     </>}
     {activeTabId === "lap-log" && visible("lap-log") && <DataComponent id="lap-log"
       queryId="lap_segments" queryIds={["lap_segments"]}

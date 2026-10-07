@@ -6,7 +6,6 @@ import { StandaloneDataProvider } from "./standalone-runtime.jsx";
 const DATA_URL = `${import.meta.env.BASE_URL}race-tape-data.json`;
 const TABS = [
   { id: "dashboard", label: "Race Tape" },
-  { id: "effort-gallery", label: "Effort Gallery" },
   { id: "lap-log", label: "Lap Log" },
   { id: "route-map", label: "Route Map" },
 ];
@@ -16,7 +15,7 @@ function readUrlState() {
   const params = new URLSearchParams(window.location.search);
   const requestedTab = params.get("tab");
   return {
-    tabId: TAB_IDS.has(requestedTab) ? requestedTab : "dashboard",
+    tabId: requestedTab === "effort-gallery" ? "dashboard" : (TAB_IDS.has(requestedTab) ? requestedTab : "dashboard"),
     lapId: params.get("lap") || undefined,
   };
 }
