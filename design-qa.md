@@ -1,43 +1,72 @@
-# Design QA — Race Tape surge explorer
+# Design QA — GFNY Attack Detector
 
-## Accepted direction
+## Accepted direction and source truth
 
-- Source reference: the user-provided Race Tape screenshot from October 7, 2026.
-- Approval evidence: the user explicitly asked to keep that continuous full-race view at the top and add an Attack Detector-style view of every separate surge with its data and route.
-- Semantic contract: the full-race explorer remains the orientation layer; the chronological surge list is the investigation layer. Selection is shared across both layers, the Lap Log, and the Route Map.
+- Accepted concept: faithfully rebuild the user-owned [Attack Detector](https://livlisko.github.io/attack-detector/) result experience, but make it a permanent single-race analysis with no upload or configuration flow.
+- Source capture: live Attack Detector repository/page at commit `d718403fd7e3d1a350a0615b2b546d9ff0a4bf7a`, captured after analyzing the same FIT file.
+- Data truth: reviewed `race-tape-data.json` snapshot from `24604508579_ACTIVITY.fit`; 12,851 one-second rows, 68 strict Effort laps, 69 Between laps, and 12,851 route points.
+- Detection contract: raw power strictly above 220 W for at least 16 consecutive recorded seconds; exactly 220 W is Between; recording gaps are hard barriers; no smoothing, merging, or FTP assumption.
+- TrainingPeaks use: NP 223 W, IF 0.89, and TSS 280 are labeled with a dagger and attributed in the methodology footer. TrainingPeaks' separate 39-interval overlay does not replace the 68 strict surges.
 
-## Reference comparison
+## Visual comparison
 
-1. Continuous race overview: preserved as one 3:34:11 timeline with the 220 W rule, effort/between ribbon, pause markers, and a draggable selected window.
-2. Selected-window analysis: preserved as a one-second power and heart-rate trace with the selected synthetic lap, threshold, pauses, time scale, and synchronized readout.
-3. Inspector: preserved at right on desktop with previous/next navigation, duration, average power, W/kg at 150 lb, peak, best 5/15 seconds, HR, and route.
-4. Effort rail: preserved as all 68 chronological efforts and made horizontally scrollable with 44 px mobile targets.
-5. Visual system: preserved the open white layout, charcoal power trace, coral effort/HR, blue-gray Between, gold threshold, purple pauses, restrained borders, and compact data typography.
-6. Responsive behavior: the same information hierarchy continues through 1440×900 desktop, 844×390 landscape, 390×844 portrait, and 320×568 narrow mobile without page-level horizontal overflow.
-7. Requested extension: added 68 chronological surge rows with a common 0–600 W sparkline scale; one row can expand at a time into a one-second context chart, complete metrics, HR response, exact route highlight, and previous/next controls.
+Desktop viewport and pixels:
 
-## Data and copy reconciliation
+- Browser viewport: 1280×720 CSS px.
+- Source screenshots: 1274×717 raster px — `artifacts/qa/source-results.png` and `artifacts/qa/source-card.png`.
+- Implementation screenshots: 1273×716 raster px — `artifacts/qa/local-results.png` and `artifacts/qa/local-card.png`.
+- Source and implementation pairs were inspected together at original resolution with `view_image`.
 
-- The reference screenshot was an approved layout concept, not a source of record. Its illustrative E65 peak/best-power/HR values were replaced with the FIT-backed values: 19 s, 411 W average, 6.04 W/kg, 554 W peak, 523 W best 5 s, 431 W best 15 s, and 171/172 bpm average/max HR.
-- Above-fold concepts retained: Race Tape title, 68 efforts, 69 Between laps, 12,851 recorded seconds, full-race duration, selected window, 220 W threshold, unit controls, selected-surge metrics, route, and effort navigation.
-- Copy was clarified to say “up to 60 recorded seconds before and after” for edge efforts.
+Mobile viewport and pixels:
 
-## Intentional deviations
+- Browser viewport: 390×844 CSS px.
+- Source capture: `artifacts/qa/source-mobile.png`.
+- Implementation capture: `artifacts/qa/local-mobile.png`.
+- Implementation width check: 383 px document client width and 383 px scroll width; no horizontal overflow.
 
-- A slim site navigation remains above the explorer so Lap Log and Route Map stay reachable.
-- The route is rendered from bundled projected geometry without external map tiles or coordinate labels.
-- The new chronological accordion appears below the approved explorer, as requested, rather than replacing it.
-- Exact source-backed values replace every illustrative number that differed from the reviewed FIT snapshot.
+## Five fidelity surfaces
 
-## Verification
+1. **Visual system:** matched the cream paper ground, teal 80 px masthead stripe, faint fixed noise, orange/teal split wordmark, hard title shadow, orange underline, muted tan surfaces, hairline borders, and 3–6 px corner radii.
+2. **Typography and density:** matched Barlow Condensed for uppercase display/labels, Barlow for prose, and JetBrains Mono for metrics; the summary grid, chart panel, results header, and terse collapsed rows use the source's spacing and hierarchy.
+3. **Ride profile:** matched a single full-width teal power trace with orange effort overlay and red HR trace, while adding a visible 220 W reference and click-to-surge synchronization requested for this analysis.
+4. **Effort cards:** matched chronological stacked cards, circular orange number badges, course/location title, mile/time subtitle, right-side average power and duration, multiple-open disclosure behavior, compact metric grid, HR-response strip, and a full-width 200–220 px map.
+5. **Responsive behavior:** matched the source breakpoint behavior—two-column controls/stats, hidden collapsed headline metrics, 240 px chart, wrapped HR-context strip, and 16 px mobile page gutters—while preserving 44 px-or-larger interactive targets.
 
-- `npm run check`: passed data validation and production build.
-- Snapshot invariants: 12,851 ride rows, 137 contiguous laps, 68 Effort, 69 Between, and 12,851 route points.
-- Browser interaction: passed selection sync, E65 expansion, previous/next surge focus, W/Wkg/Both modes, Method disclosure, Lap Log filters/sort, Route Map selection, and return-to-explorer focus.
-- Recording gaps: E68 context produces three path sections and two visible pause markers; no line bridges a recording segment.
-- Responsive visual inspection: passed at 1440×900, 844×390, 390×844, and 320×568, with no page-level horizontal overflow.
-- Accessibility checks: keyboard-operable explorer and charts, visible focus treatment, synchronized live selection text, ARIA expansion state, reduced-motion-aware scrolling, and 44 px mobile effort targets.
+## Full-view and focused comparison
+
+- Full result hierarchy: source summary → Ride Power Profile → Detected Attacks was retained exactly; the fixed-race version starts there immediately instead of placing upload/settings ahead of it.
+- Focused expanded card: source and implementation both show one compact row header, metric grid, four-part HR response, and route panel. The implementation uses the real E01 interval and fits its route plus 90 seconds of nearby course context.
+- Selected-state treatment: implementation adds a thin orange card border and darker selected chart stroke so chart, URL, and expanded card read as one synchronized state.
+
+## Copy diff and intentional deviations
+
+- `ATTACK DETECTOR` became `GFNY ATTACK DETECTOR`; the subtitle names Maryland and explains that the race is already analyzed.
+- Upload, FTP, threshold, smoothing, power-zone editor, help modal, geocoding status, and Detect button were removed because this page only analyzes the fixed GFNY race.
+- `119 efforts` from the source's default smoothed/FTP algorithm became `68 efforts` from the approved strict raw-power rule.
+- Street names and zone labels were replaced with the source-backed course sections Rollout, Loop 1, Loop 2, and Finish; no reverse-geocoding dependency is needed.
+- External Leaflet/CARTO tiles were replaced with bundled projected route geometry on a quiet map-like field. This keeps the exact race line available offline and avoids external tile requests.
+- FTP-derived interval NP, percent FTP, and power/HR zones were replaced by best 5/15-second power, work, cadence, speed, elevation change, and source-backed HR response.
+- Export CSV intentionally contains all 137 contiguous synthetic laps, not only the 68 efforts, so every recorded second remains represented.
+
+## Iteration history
+
+1. Removed the prior white tabbed Race Tape/Lap Log/Route Map shell and rebuilt the page around the live source's editorial flow.
+2. Replaced hour rows and card sparklines with one full-race profile and terse expandable effort rows.
+3. Corrected the mini-map from a whole-course highlight (too small to see) to an interval-focused view with ±90 seconds of course context.
+4. Constrained 15-second HR context to the effort's recording segment so an auto-pause cannot create a false response bridge.
+5. Verified the TrainingPeaks CSV separately and kept its 39 interval boundaries out of the primary 68-surge detector.
+
+## Functional verification
+
+- `npm run check`: passed snapshot validation and production build.
+- Snapshot invariants: 12,851 ride rows, 137 contiguous laps, 68 Effort, 69 Between, 1,538 effort seconds, and 12,851 route points.
+- Boundary fixtures: 15 seconds above 220 W rejected; 16 accepted; exactly 220 rejected; recording-gap crossing rejected.
+- Card disclosure: E02 click produced two simultaneously open cards; URL updated to `?effort=E02`.
+- Keyboard: Enter on E03 opened its card and updated the URL.
+- Chart synchronization: clicking the chart midpoint selected, opened, and scrolled to E40.
+- CSV: browser export produced 137 rows (68 Effort + 69 Between), beginning B00 and ending B68.
+- Mobile: 390×844 summary, chart, actions, expanded metrics, HR response, and route inspected with no horizontal overflow.
 - Console: no warnings or errors.
-- Reference and final implementation were inspected side-by-side at original resolution.
+- Print All is implemented with print-specific styles; the native print dialog itself was not invoked during automated QA.
 
 final result: passed
