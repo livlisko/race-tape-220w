@@ -1,0 +1,323 @@
+.race-tape-page {
+  --race-effort: light-dark(#e94f37, #ff7b63);
+  --race-effort-text: light-dark(#b3261e, #ff8c78);
+  --race-effort-fill: color-mix(in srgb, var(--race-effort) 23%, transparent);
+  --race-between: light-dark(#2f5f73, #83b3c6);
+  --race-between-soft: color-mix(in srgb, var(--race-between) 15%, transparent);
+  --race-threshold: light-dark(#a86d00, #f2bf54);
+  --race-threshold-text: light-dark(#805100, #f2bf54);
+  --race-pause: light-dark(#7752a8, #bda1e5);
+  padding-top: 18px;
+}
+
+.race-tape-page:focus { outline: none; }
+.race-tape-page:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 12px; }
+
+.race-summary {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.race-summary > div {
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-hairline);
+}
+
+.race-summary span { display: block; color: var(--secondary); font-size: 13px; line-height: 18px; }
+.race-summary strong { display: block; margin-top: 4px; color: var(--text); font-size: 22px; line-height: 28px; font-variant-numeric: tabular-nums; }
+
+.race-tape-layout { min-width: 0; }
+.tape-legend { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 2px 0 16px; color: var(--secondary); font-size: 13px; line-height: 20px; }
+.tape-legend span { display: inline-flex; align-items: center; gap: 7px; }
+.tape-legend i { width: 18px; height: 8px; border-radius: 2px; }
+.legend-effort { border: 1.5px solid var(--race-effort); background: var(--race-effort-fill); }
+.legend-between { border: 1px solid var(--race-between); background: repeating-linear-gradient(45deg, transparent 0 3px, var(--race-between-soft) 3px 5px); }
+.legend-threshold { height: 0 !important; border-top: 2px dashed var(--race-threshold); border-radius: 0 !important; }
+.legend-pause { width: 2px !important; height: 13px !important; border-left: 2px dashed var(--race-pause); border-radius: 0 !important; }
+
+.tape-rows { display: grid; gap: 16px; }
+.tape-row-wrap { min-width: 0; }
+.tape-row-heading { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 5px; color: var(--secondary); font-size: 13px; line-height: 18px; }
+.tape-row-heading strong { color: var(--text); font-size: 14px; }
+.tape-row { display: block; width: 100%; min-width: 0; overflow: visible; }
+.tape-plot-bg { fill: color-mix(in srgb, var(--surface) 75%, var(--background)); stroke: var(--border); }
+.tape-grid { stroke: var(--border); stroke-width: .7; }
+.tape-axis-label, .threshold-label { fill: var(--secondary); font-size: 9px; }
+.threshold-line { stroke: var(--race-threshold); stroke-width: 1.5; stroke-dasharray: 6 5; }
+.threshold-label { fill: var(--race-threshold-text); font-weight: 700; }
+.power-peak-line { fill: none; stroke: color-mix(in srgb, var(--text) 32%, transparent); stroke-width: 1.2; }
+.power-average-line { fill: none; stroke: var(--text); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.between-hatch-line { stroke: var(--race-between); stroke-width: 2; opacity: .2; }
+.tape-segment { cursor: pointer; outline: none; }
+.tape-segment > rect:first-of-type { stroke-width: .8; }
+.tape-segment.is-effort > rect:first-of-type { stroke: var(--race-effort); }
+.tape-segment.is-between > rect:first-of-type { stroke: color-mix(in srgb, var(--race-between) 42%, transparent); }
+.tape-segment .segment-ribbon { fill: var(--race-between-soft); stroke: var(--race-between); stroke-width: .7; }
+.tape-segment.is-effort .segment-ribbon { fill: color-mix(in srgb, var(--race-effort) 70%, var(--surface)); stroke: var(--race-effort); }
+.tape-segment:is(:hover, :focus-visible) > rect:first-of-type,
+.tape-segment.is-selected > rect:first-of-type { stroke: var(--text); stroke-width: 2.5; }
+.tape-segment.is-selected .segment-ribbon { stroke: var(--text); stroke-width: 1.8; }
+.tape-segment:focus-visible > rect:first-of-type { stroke: var(--accent); stroke-width: 3.5; }
+.tape-segment:focus-visible .segment-ribbon { stroke: var(--accent); stroke-width: 2.4; }
+.segment-id { fill: var(--text); font-size: 9px; font-weight: 700; pointer-events: none; }
+.effort-flag { fill: var(--race-effort-text); font-size: 9px; font-weight: 800; pointer-events: none; }
+.pause-line { stroke: var(--race-pause); stroke-width: 2; stroke-dasharray: 3 3; }
+.pause-label { fill: var(--race-pause); font-size: 9px; font-weight: 700; }
+.tape-hover { display: flex; min-height: 26px; align-items: center; gap: 11px; padding: 4px 8px; color: var(--secondary); font-size: 12px; line-height: 18px; }
+.tape-hover.is-visible { color: var(--text); }
+.tape-hover strong { color: var(--race-effort-text); }
+
+.selected-lap { margin-top: 16px; padding: 18px; border: 1px solid var(--border); border-left: 4px solid var(--race-between); border-radius: 16px; background: var(--surface); }
+.selected-lap.is-effort { border-left-color: var(--race-effort); }
+.selected-lap-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.selected-lap h3 { margin: 3px 0 2px; color: var(--text); font-size: 22px; line-height: 28px; }
+.selected-lap p { margin: 0; color: var(--secondary); font-size: 14px; line-height: 20px; }
+.lap-type-mark { color: var(--secondary); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.selected-lap.is-effort .lap-type-mark { color: var(--race-effort-text); }
+.lap-stepper { display: flex; align-items: center; gap: 10px; }
+.lap-stepper button { min-height: 36px; padding: 0 12px; border: 1px solid var(--border-strong); border-radius: 10px; background: var(--control); color: var(--text); font: inherit; cursor: pointer; }
+.lap-stepper button:hover { background: var(--control-hover); }
+.lap-stepper button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.lap-stepper span { min-width: 62px; color: var(--secondary); font-size: 13px; text-align: center; }
+.selected-metrics { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 10px; margin: 18px 0 0; }
+.selected-metrics div { min-width: 0; padding-top: 10px; border-top: 1px solid var(--border); }
+.selected-metrics dt { color: var(--secondary); font-size: 12px; line-height: 17px; }
+.selected-metrics dd { overflow: hidden; margin: 2px 0 0; color: var(--text); font-size: 15px; font-weight: 650; line-height: 20px; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.between-note { margin-top: 14px !important; padding: 10px 12px; border-radius: 10px; background: var(--race-between-soft); color: var(--text) !important; }
+.method-line { margin: 12px 2px 28px; color: var(--secondary); font-size: 13px; line-height: 19px; text-align: right; }
+
+.selected-lap-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.effort-gallery-layout,
+.lap-log-layout,
+.route-map-layout { min-width: 0; }
+
+.effort-gallery-intro,
+.route-map-intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 16px;
+}
+
+.effort-gallery-intro > div,
+.route-map-intro > div:first-child { display: grid; gap: 2px; }
+.effort-gallery-intro strong,
+.route-map-intro strong { color: var(--text); font-size: 15px; line-height: 21px; }
+.effort-gallery-intro span,
+.route-map-intro span { color: var(--secondary); font-size: 13px; line-height: 19px; }
+.gallery-threshold-key,
+.route-map-key span { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.gallery-threshold-key i { width: 24px; border-top: 2px dashed var(--race-threshold); }
+
+.effort-detail {
+  margin-bottom: 20px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--race-effort);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--surface) 94%, var(--race-effort));
+  box-shadow: var(--shadow-hairline);
+}
+
+.effort-detail.is-empty { border-left-color: var(--border-strong); }
+.effort-detail-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+.effort-detail-heading h3 { margin: 3px 0 2px; color: var(--text); font-size: 22px; line-height: 28px; }
+.effort-detail-heading p,
+.effort-detail.is-empty p { margin: 0; color: var(--secondary); font-size: 14px; line-height: 20px; }
+.effort-detail.is-empty h3 { margin: 0 0 3px; color: var(--text); }
+.effort-detail-chart { display: block; width: 100%; margin-top: 14px; overflow: visible; }
+.detail-plot-bg { fill: color-mix(in srgb, var(--background) 78%, var(--surface)); stroke: var(--border); }
+.detail-selected-window { fill: color-mix(in srgb, var(--race-effort) 12%, transparent); stroke: var(--race-effort); stroke-width: 1.4; }
+.detail-grid { stroke: var(--border); stroke-width: .8; }
+.detail-axis-label { fill: var(--secondary); font-size: 10px; }
+.detail-power-line { fill: none; stroke: var(--race-effort); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
+.detail-heart-line { fill: none; stroke: var(--race-between); stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round; }
+.effort-detail-metrics { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.lap-stepper button:disabled { cursor: not-allowed; opacity: .45; }
+
+.effort-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(255px, 1fr));
+  gap: 12px;
+}
+
+.effort-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: var(--shadow-hairline);
+  transition: border-color 140ms ease, box-shadow 140ms ease, transform 140ms ease;
+}
+
+.effort-card:hover { border-color: color-mix(in srgb, var(--race-effort) 60%, var(--border)); transform: translateY(-1px); }
+.effort-card.is-selected { border-color: var(--race-effort); box-shadow: 0 0 0 2px color-mix(in srgb, var(--race-effort) 24%, transparent); }
+.effort-card-hit { display: block; width: 100%; min-height: 100%; padding: 13px; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.effort-card-hit:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; border-radius: 13px; }
+.effort-card-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.effort-card-heading strong { color: var(--race-effort-text); font-size: 16px; line-height: 22px; }
+.effort-card-heading > span { overflow: hidden; color: var(--secondary); font-size: 12px; line-height: 18px; text-overflow: ellipsis; white-space: nowrap; }
+.effort-sparkline { display: block; width: 100%; height: 92px; margin: 8px 0 10px; }
+.effort-spark-bg { fill: color-mix(in srgb, var(--background) 80%, var(--surface)); stroke: var(--border); }
+.effort-power-line { fill: none; stroke: var(--race-effort); stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round; }
+.effort-card-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 9px; }
+.effort-card-metrics > span { display: grid; min-width: 0; gap: 1px; padding-top: 6px; border-top: 1px solid var(--border); }
+.effort-card-metrics small { color: var(--secondary); font-size: 10px; line-height: 14px; }
+.effort-card-metrics b { overflow: hidden; color: var(--text); font-size: 12px; line-height: 17px; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+.lap-log-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 88%, var(--background));
+}
+
+.lap-log-filters,
+.lap-log-actions { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 10px; }
+.lap-log-filters label { display: grid; gap: 4px; color: var(--secondary); font-size: 12px; font-weight: 650; }
+.lap-log-filters select,
+.lap-log-filters button,
+.lap-download {
+  min-height: 38px;
+  padding: 0 11px;
+  border: 1px solid var(--border-strong);
+  border-radius: 9px;
+  background: var(--control);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+
+.lap-log-filters select { min-width: 132px; }
+.lap-log-filters button,
+.lap-download { cursor: pointer; }
+.lap-log-filters button:hover,
+.lap-download:hover { background: var(--control-hover); }
+.lap-log-filters button:disabled { cursor: not-allowed; opacity: .45; }
+.lap-log-filters :focus-visible,
+.lap-download:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.lap-log-actions { justify-content: flex-end; }
+.lap-log-actions > span { align-self: center; color: var(--secondary); font-size: 13px; white-space: nowrap; }
+.lap-download { border-color: color-mix(in srgb, var(--race-effort) 52%, var(--border-strong)); font-weight: 650; }
+
+.lap-log-table-wrap { width: 100%; overflow: auto; border: 1px solid var(--border); border-radius: 14px; }
+.lap-log-table { width: 100%; min-width: 1560px; border-collapse: separate; border-spacing: 0; color: var(--text); font-size: 12px; font-variant-numeric: tabular-nums; }
+.lap-log-table caption { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
+.lap-log-table th,
+.lap-log-table td { padding: 8px 9px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
+.lap-log-table th:first-child,
+.lap-log-table th:nth-child(2),
+.lap-log-table th:nth-child(3),
+.lap-log-table th:nth-child(4),
+.lap-log-table td:first-child,
+.lap-log-table td:nth-child(2),
+.lap-log-table td:nth-child(3),
+.lap-log-table td:nth-child(4) { text-align: left; }
+.lap-log-table thead th { position: sticky; top: 0; z-index: 2; padding: 0; border-bottom-color: var(--border-strong); background: var(--surface); }
+.lap-log-table th button { width: 100%; padding: 9px; border: 0; background: transparent; color: var(--secondary); font: inherit; font-weight: 700; text-align: inherit; cursor: pointer; }
+.lap-log-table th button:hover { color: var(--text); background: var(--control-hover); }
+.lap-log-table th button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.lap-log-table tbody tr:last-child td { border-bottom: 0; }
+.lap-log-table tbody tr:hover td { background: var(--control-hover); }
+.lap-log-table tbody tr.is-selected td { background: color-mix(in srgb, var(--race-effort) 12%, var(--surface)); }
+.lap-id-button { min-width: 44px; padding: 4px 7px; border: 1px solid var(--border-strong); border-radius: 7px; background: var(--control); color: var(--text); font: inherit; font-weight: 750; cursor: pointer; }
+.lap-id-button[aria-pressed="true"] { border-color: var(--race-effort); color: var(--race-effort-text); }
+.lap-id-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.lap-log-mobile { display: none; }
+
+.route-map-key { display: flex; align-items: center; gap: 14px; }
+.route-map-key i { display: inline-block; width: 25px; height: 0; }
+.route-key-full { border-top: 4px solid var(--race-between); opacity: .55; }
+.route-key-selected { border-top: 5px solid var(--race-effort); }
+.route-map-canvas { display: block; width: 100%; max-height: 650px; overflow: visible; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); }
+.route-map-bg { fill: color-mix(in srgb, var(--background) 72%, var(--surface)); }
+.route-full-path { fill: none; stroke: var(--race-between); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; opacity: .48; }
+.route-selected-halo { fill: none; stroke: color-mix(in srgb, var(--race-effort) 30%, white); stroke-width: 15; stroke-linecap: round; stroke-linejoin: round; opacity: .55; }
+.route-selected-path { fill: none; stroke: var(--race-effort); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+.route-selected-start { fill: var(--surface); stroke: var(--race-effort); stroke-width: 4; }
+.route-selected-end { fill: var(--race-effort); stroke: var(--surface); stroke-width: 3; }
+.route-course-label line { stroke: color-mix(in srgb, var(--secondary) 70%, transparent); stroke-width: 1.2; }
+.route-course-label circle { fill: var(--surface); stroke: var(--race-effort); stroke-width: 3; }
+.route-course-label text { fill: var(--text); paint-order: stroke; stroke: var(--surface); stroke-width: 5px; stroke-linejoin: round; font-size: 14px; font-weight: 800; }
+
+@media (max-width: 1050px) {
+  .race-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .selected-metrics { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .effort-detail-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .lap-log-toolbar { align-items: stretch; flex-direction: column; }
+  .lap-log-actions { justify-content: space-between; }
+}
+
+@media (max-width: 720px) {
+  .race-tape-page { padding-top: 12px; }
+  .race-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .race-summary > div { padding: 12px; border-radius: 12px; }
+  .race-summary strong { font-size: 19px; line-height: 24px; }
+  .tape-legend { gap: 7px 12px; }
+  .tape-row { min-width: 760px; }
+  .tape-row-wrap { overflow-x: auto; padding-bottom: 2px; }
+  .tape-row-heading { position: sticky; left: 0; width: min(100%, 760px); }
+  .selected-lap-heading { flex-direction: column; }
+  .lap-stepper { width: 100%; justify-content: space-between; }
+  .lap-stepper button { min-height: 44px; }
+  .selected-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .method-line { text-align: left; }
+  .effort-gallery-intro,
+  .route-map-intro,
+  .effort-detail-heading { align-items: flex-start; flex-direction: column; }
+  .effort-detail { padding: 14px; border-radius: 13px; }
+  .effort-detail-chart { min-width: 740px; }
+  .effort-detail:not(.is-empty) { overflow-x: auto; }
+  .effort-detail-heading,
+  .effort-detail-metrics { position: sticky; left: 0; width: min(100%, 740px); }
+  .effort-detail-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .effort-gallery-grid { grid-template-columns: 1fr; }
+  .lap-log-toolbar { padding: 10px; }
+  .lap-log-filters,
+  .lap-log-actions { align-items: stretch; flex-direction: column; }
+  .lap-log-filters label,
+  .lap-log-filters select,
+  .lap-log-filters button,
+  .lap-log-actions > span,
+  .lap-download { width: 100%; }
+  .lap-log-filters select,
+  .lap-log-filters button,
+  .lap-download { min-height: 44px; }
+  .lap-log-actions > span { text-align: left; }
+  .lap-log-table-wrap { display: none; }
+  .lap-log-mobile { display: grid; gap: 8px; }
+  .lap-log-card { overflow: hidden; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+  .lap-log-card.is-selected { border-color: var(--race-effort); box-shadow: 0 0 0 2px color-mix(in srgb, var(--race-effort) 20%, transparent); }
+  .lap-log-card > button { display: grid; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; padding: 13px; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  .lap-log-card > button:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
+  .lap-log-card span { display: grid; min-width: 0; gap: 1px; }
+  .lap-log-card b,
+  .lap-log-card strong { color: var(--text); font-size: 14px; line-height: 19px; font-variant-numeric: tabular-nums; }
+  .lap-log-card small { overflow: hidden; color: var(--secondary); font-size: 11px; line-height: 16px; text-overflow: ellipsis; white-space: nowrap; }
+  .route-map-key { flex-wrap: wrap; }
+  .route-map-canvas { border-radius: 13px; }
+}
